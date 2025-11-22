@@ -6,9 +6,10 @@ import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BalanceModule } from './balance/balance.module';
+import { TransferModule } from './transfer/transfer.module';
 
 @Module({
-  imports: [ConfigModule.forRoot(), AuthModule, UserModule, BalanceModule],
+  imports: [ConfigModule.forRoot(), AuthModule, UserModule, BalanceModule, TransferModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
