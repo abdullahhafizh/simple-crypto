@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RateLimitGuard } from '../rate-limit.guard';
 import { TransferDto } from './dto/transfer.dto';
 import { TransferService } from './transfer.service';
 
@@ -9,7 +10,7 @@ interface RequestWithUser extends Request {
 }
 
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RateLimitGuard)
 export class TransferController {
   constructor(private readonly transferService: TransferService) {}
 

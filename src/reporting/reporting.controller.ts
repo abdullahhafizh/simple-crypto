@@ -1,6 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RateLimitGuard } from '../rate-limit.guard';
 import { ReportingService } from './reporting.service';
 
 interface RequestWithUser extends Request {
@@ -8,7 +9,7 @@ interface RequestWithUser extends Request {
 }
 
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RateLimitGuard)
 export class ReportingController {
   constructor(private readonly reportingService: ReportingService) {}
 

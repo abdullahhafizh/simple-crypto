@@ -1,98 +1,175 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## Simple Crypto API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS + PostgreSQL service that implements a minimal crypto-wallet style ledger:
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="bun Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="bun Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- **User registration & login** with stateless JWT auth.
+- **Encrypted JWT payload**: user data is stored in an encrypted claim (`enc`) using AES-256-GCM with a key derived from `JWT_SECRET`.
+- **Ledger-based balance**: there is no mutable balance column; balances are derived from the `Transaction` table (CREDIT − DEBIT).
+- **Topup & transfer** with row-level locking (`SELECT ... FOR UPDATE`) to avoid race conditions on balance updates.
+- **Reporting**:
+  - `GET /top_transactions_per_user` shows the largest incoming/outgoing transfers for the current user.
+  - `GET /top_users` uses the summary table `UserTransferStats` (column `totalOutbound`) as an outbound-transfer leaderboard.
 
-## Description
+Main stack:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- NestJS 11.1.9
+- Prisma ORM 7 + PostgreSQL 18.1 (adapter `@prisma/adapter-pg`)
+- ULID as primary key (`String @id @db.VarChar(26)`)
+- BigInt for monetary values (`BigInt @db.BigInt`)
 
-## Project setup
+---
+
+## Environment variables
+
+Example file: `.env.example`.
+
+- **HTTP & DB**
+  - `PORT` – defaults to `3000`.
+  - `DB_HOST` – defaults to `localhost`.
+  - `DB_PORT` – defaults to `5432`.
+  - `DB_NAME` – **required**, PostgreSQL database name.
+  - `DB_USER` – **required**, PostgreSQL user.
+  - `DB_PASS` – **required**, PostgreSQL password.
+  - `DB_SSL_MODE` – `false` or a PostgreSQL SSL mode (for example `require`).
+
+- **JWT**
+  - `JWT_SECRET` – **required**, strong secret used for JWT signing and AES-256-GCM key derivation.
+  - `JWT_EXPIRES_IN` – expiry in **milliseconds** (for example `3600000` = 1 hour).
+
+> Note: this service builds `DATABASE_URL` from `DB_*` variables via the `buildDatabaseUrlFromEnv()` helper.
+
+---
+
+## Setup
+
+1. **Install dependencies**
+
+   ```bash
+   bun install
+   ```
+
+2. **Configure environment**
+
+   ```bash
+   cp .env.example .env
+   # then edit .env and fill DB_NAME, DB_USER, DB_PASS, JWT_SECRET, JWT_EXPIRES_IN
+   ```
+
+3. **Create the PostgreSQL database**
+
+   Create a database named `DB_NAME`, with credentials matching `DB_USER` and `DB_PASS`.
+
+4. **Apply Prisma migrations**
+
+   From the project root (`simple-crypto-api`):
+
+   ```bash
+   bunx prisma migrate deploy
+   ```
+
+   Ensure `prisma/migrations` exists and is up to date.
+
+---
+
+## Run service
+
+Run these commands from this project root.
 
 ```bash
-$ bun install
+# development (watch mode)
+bun start:dev
+
+# production build
+bun run build
+
+# production run (uses the same env variables as dev/prod)
+bun start:prod
 ```
 
-## Compile and run the project
+The service listens on `PORT` (env) or `3000` by default.
+
+---
+
+## Testing
+
+Scripts from `package.json` can be run with Bun:
 
 ```bash
-# development
-$ bun start
-
-# watch mode
-$ bun start:dev
-
-# production mode
-$ bun start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ bun test
+# unit tests (Jest, rootDir=src)
+bun run test
 
 # e2e tests
-$ bun test:e2e
+bun test:e2e
 
-# test coverage
-$ bun test:cov
+# coverage
+bun test:cov
 ```
 
-## Deployment
+> If a shorthand like `bun <script>` does not work in your Bun version, fall back to `bun run <script>`.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### E2E notes
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- E2E tests (`test/app.e2e-spec.ts`) boot the full `AppModule` and use the same PostgreSQL database defined by `DB_*` env vars.
+- At minimum, set the following before running e2e tests:
+  - `DB_NAME`, `DB_USER`, `DB_PASS`
+  - `JWT_SECRET` (tests provide a fallback if not set, but for real runs you should configure it explicitly)
+  - `JWT_EXPIRES_IN`
+- Before each scenario, the helper `resetDatabase` truncates:
+  - `User`
+  - `Transaction`
+  - `UserTransferStats`
 
-```bash
-$ bun install -g @nestjs/mau
-$ mau deploy
-```
+E2E scenarios cover, among others:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- Full happy path: register → login → topup → transfer → balance → `GET /top_transactions_per_user` → `GET /top_users`.
+- Duplicate username (409), invalid amount, insufficient balance.
+- JWT guard behaviour (401 when no token is provided).
+- `Authorization` header supporting both `Bearer <token>` and raw `<token>`.
+- Reporting payload and ordering for `top_transactions_per_user` and `top_users`.
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## API overview
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+High-level endpoints (all at the root, no version prefix):
 
-## Support
+- `POST /user` – register a new user and return a JWT.
+- `POST /login` – login by username and return a JWT.
+- `POST /topup` – **requires JWT**, add balance via a CREDIT transaction.
+- `GET /balance` – **requires JWT**, read logical balance from the ledger (CREDIT − DEBIT).
+- `POST /transfer` – **requires JWT**, transfer balance between users with row-level locking and DEBIT/CREDIT ledger entries.
+- `GET /top_transactions_per_user` – **requires JWT**, list the largest incoming/outgoing transfers for the current user.
+- `GET /top_users` – **requires JWT**, global leaderboard by `UserTransferStats.totalOutbound`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## Deployment notes
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+1. **Build & runtime**
 
-## License
+   ```bash
+   bun install
+   bun run build
+   bun start:prod
+   ```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+2. **Environment in production**
+
+   - Set all `DB_*` variables to point at the production PostgreSQL instance.
+   - Set a long, hard-to-guess `JWT_SECRET`.
+   - Set `JWT_EXPIRES_IN` according to your requirements (in ms).
+   - Consider `DB_SSL_MODE=require` if the DB is accessed over a public network or via a managed service.
+
+3. **Database migrations**
+
+   Run before starting the service for the first time (and whenever the schema changes):
+
+   ```bash
+   bunx prisma migrate deploy
+   ```
+
+4. **Security**
+
+   - Sensitive data is not exposed as plain JWT claims; user info lives inside the encrypted `enc` claim.
+   - The service is fully stateless with respect to JWT (no tokens stored in the DB); revocation is handled via expiry and secret rotation.
+   - Keep `.env` / secrets out of version control and manage them via your platform's secret management.

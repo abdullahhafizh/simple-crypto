@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RateLimitGuard } from '../rate-limit.guard';
 import { BalanceService } from './balance.service';
 import { TopupBalanceDto } from './dto/topup-balance.dto';
 
@@ -18,7 +19,7 @@ interface RequestWithUser extends Request {
 }
 
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RateLimitGuard)
 export class BalanceController {
   constructor(private readonly balanceService: BalanceService) {}
 

@@ -1,7 +1,8 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RateLimitGuard } from '../rate-limit.guard';
 
 @Controller()
 export class AuthController {
@@ -11,6 +12,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @UseGuards(RateLimitGuard)
   async login(@Body() body: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { username: body.username },
