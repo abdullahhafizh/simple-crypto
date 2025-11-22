@@ -1,0 +1,22 @@
+enum TransactionType {
+  DEBIT
+  CREDIT
+}
+
+model Transaction {
+  id        String          @id @db.VarChar(26)
+  amount    BigInt          @db.BigInt
+  type      TransactionType
+
+  fromUserId String?
+  toUserId   String
+
+  fromUser  User?           @relation("SentTransactions", fields: [fromUserId], references: [id])
+  toUser    User            @relation("ReceivedTransactions", fields: [toUserId], references: [id])
+
+  createdAt DateTime        @default(now()) @db.Timestamp(3)
+  updatedAt DateTime        @default(now()) @updatedAt @db.Timestamp(3)
+
+  @@index([toUserId, type, amount, createdAt])
+  @@index([fromUserId, type, amount, createdAt])
+}

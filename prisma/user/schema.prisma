@@ -1,0 +1,10 @@
+model User {
+  id        String   @id @db.VarChar(26)
+  username  String   @unique
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  sentTransactions     Transaction[] @relation("SentTransactions")
+  receivedTransactions  Transaction[] @relation("ReceivedTransactions")
+  transferStats         UserTransferStats?
+}

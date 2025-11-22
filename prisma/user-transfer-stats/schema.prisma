@@ -1,0 +1,11 @@
+model UserTransferStats {
+  userId        String  @id
+  totalOutbound BigInt  @db.BigInt
+
+  user          User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  @@index([totalOutbound])
+}
