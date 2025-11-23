@@ -10,6 +10,6 @@ export class UserController {
 
   @Post()
   async register(@Body() body: RegisterUserDto) {
-    return this.userService.register(body.username);
+    return this.userService.register(body.username, body.password);
   }
 }

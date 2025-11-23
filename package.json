@@ -1,12 +1,12 @@
 {
   "name": "simple-crypto",
   "version": "1.0.0",
-  "description": "",
-  "author": "",
+  "description": "Simple crypto wallet API built with NestJS and Prisma, featuring JWT auth, Argon2-hashed passwords, and ledger-based balances.",
+  "author": "Abdullah Hafizh <abdllhhafizh@gmail.com> (https://porto.abdullahhafizh.my.id)",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "prisma generate && nest build",
+    "build": "prisma generate && prisma migrate deploy && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -36,7 +36,8 @@
     "prisma": "^7.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "ulid": "^3.0.1"
+    "ulid": "^3.0.1",
+    "argon2": "^0.44.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

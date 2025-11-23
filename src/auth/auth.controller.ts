@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RateLimitGuard } from '../rate-limit.guard';
+import { verifyPassword } from './password.util';
 
 @Controller()
 export class AuthController {
@@ -18,7 +19,13 @@ export class AuthController {
       where: { username: body.username },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
+      throw new UnauthorizedException();
+    }
+
+    const passwordValid = await verifyPassword(body.password, user.password);
+
+    if (!passwordValid) {
       throw new UnauthorizedException();
     }
 

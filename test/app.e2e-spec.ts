@@ -45,11 +45,13 @@ describe('Simple Crypto API (e2e)', () => {
 
     const aliceUsername = 'alice_e2e';
     const bobUsername = 'bob_e2e';
+    const alicePassword = 'alice_password_e2e';
+    const bobPassword = 'bob_password_e2e';
 
     // Register Alice
     const registerAliceRes = await request(server)
       .post('/user')
-      .send({ username: aliceUsername })
+      .send({ username: aliceUsername, password: alicePassword })
       .expect(201);
 
     expect(typeof registerAliceRes.body.token).toBe('string');
@@ -57,13 +59,13 @@ describe('Simple Crypto API (e2e)', () => {
     // Register Bob
     await request(server)
       .post('/user')
-      .send({ username: bobUsername })
+      .send({ username: bobUsername, password: bobPassword })
       .expect(201);
 
     // Login as Alice to get JWT
     const loginAliceRes = await request(server)
       .post('/login')
-      .send({ username: aliceUsername })
+      .send({ username: aliceUsername, password: alicePassword })
       .expect(201);
 
     const aliceToken = loginAliceRes.body.token as string;
@@ -93,7 +95,7 @@ describe('Simple Crypto API (e2e)', () => {
     // Login as Bob to inspect his balance
     const loginBobRes = await request(server)
       .post('/login')
-      .send({ username: bobUsername })
+      .send({ username: bobUsername, password: bobPassword })
       .expect(201);
 
     const bobToken = loginBobRes.body.token as string;
@@ -146,15 +148,16 @@ describe('Simple Crypto API (e2e)', () => {
     const server = app.getHttpServer();
 
     const username = 'dup_user_e2e';
+    const password = 'dup_user_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     await request(server)
       .post('/user')
-      .send({ username })
+      .send({ username, password })
       .expect(409);
   });
 
@@ -163,17 +166,18 @@ describe('Simple Crypto API (e2e)', () => {
     const server = app.getHttpServer();
 
     const username = 'topup_invalid_e2e';
+    const password = 'topup_invalid_password_e2e';
 
     const registerRes = await request(server)
       .post('/user')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     expect(typeof registerRes.body.token).toBe('string');
 
     const loginRes = await request(server)
       .post('/login')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     const token = loginRes.body.token as string;
@@ -209,20 +213,22 @@ describe('Simple Crypto API (e2e)', () => {
 
     const sender = 'sender_no_balance_e2e';
     const receiver = 'receiver_no_balance_e2e';
+    const senderPassword = 'sender_no_balance_password_e2e';
+    const receiverPassword = 'receiver_no_balance_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username: sender })
+      .send({ username: sender, password: senderPassword })
       .expect(201);
 
     await request(server)
       .post('/user')
-      .send({ username: receiver })
+      .send({ username: receiver, password: receiverPassword })
       .expect(201);
 
     const loginSenderRes = await request(server)
       .post('/login')
-      .send({ username: sender })
+      .send({ username: sender, password: senderPassword })
       .expect(201);
 
     const senderToken = loginSenderRes.body.token as string;
@@ -266,15 +272,16 @@ describe('Simple Crypto API (e2e)', () => {
     const server = app.getHttpServer();
 
     const username = 'raw_token_user_e2e';
+    const password = 'raw_token_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     const loginRes = await request(server)
       .post('/login')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     const token = loginRes.body.token as string;
@@ -298,15 +305,16 @@ describe('Simple Crypto API (e2e)', () => {
     const server = app.getHttpServer();
 
     const username = 'no_tx_user_e2e';
+    const password = 'no_tx_user_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     const loginRes = await request(server)
       .post('/login')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     const token = loginRes.body.token as string;
@@ -333,32 +341,35 @@ describe('Simple Crypto API (e2e)', () => {
     const highSender = 'sender_high_e2e';
     const lowSender = 'sender_low_e2e';
     const receiver = 'receiver_stats_e2e';
+    const highPassword = 'sender_high_password_e2e';
+    const lowPassword = 'sender_low_password_e2e';
+    const receiverPassword = 'receiver_stats_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username: highSender })
+      .send({ username: highSender, password: highPassword })
       .expect(201);
 
     await request(server)
       .post('/user')
-      .send({ username: lowSender })
+      .send({ username: lowSender, password: lowPassword })
       .expect(201);
 
     await request(server)
       .post('/user')
-      .send({ username: receiver })
+      .send({ username: receiver, password: receiverPassword })
       .expect(201);
 
     const loginHighRes = await request(server)
       .post('/login')
-      .send({ username: highSender })
+      .send({ username: highSender, password: highPassword })
       .expect(201);
 
     const highToken = loginHighRes.body.token as string;
 
     const loginLowRes = await request(server)
       .post('/login')
-      .send({ username: lowSender })
+      .send({ username: lowSender, password: lowPassword })
       .expect(201);
 
     const lowToken = loginLowRes.body.token as string;
@@ -411,20 +422,22 @@ describe('Simple Crypto API (e2e)', () => {
 
     const sender = 'tx_sort_sender_e2e';
     const receiver = 'tx_sort_receiver_e2e';
+    const senderPassword = 'tx_sort_sender_password_e2e';
+    const receiverPassword = 'tx_sort_receiver_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username: sender })
+      .send({ username: sender, password: senderPassword })
       .expect(201);
 
     await request(server)
       .post('/user')
-      .send({ username: receiver })
+      .send({ username: receiver, password: receiverPassword })
       .expect(201);
 
     const loginSenderRes = await request(server)
       .post('/login')
-      .send({ username: sender })
+      .send({ username: sender, password: senderPassword })
       .expect(201);
 
     const senderToken = loginSenderRes.body.token as string;
@@ -471,20 +484,22 @@ describe('Simple Crypto API (e2e)', () => {
 
     const sender = 'concurrent_sender_e2e';
     const receiver = 'concurrent_receiver_e2e';
+    const senderPassword = 'concurrent_sender_password_e2e';
+    const receiverPassword = 'concurrent_receiver_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username: sender })
+      .send({ username: sender, password: senderPassword })
       .expect(201);
 
     await request(server)
       .post('/user')
-      .send({ username: receiver })
+      .send({ username: receiver, password: receiverPassword })
       .expect(201);
 
     const loginSenderRes = await request(server)
       .post('/login')
-      .send({ username: sender })
+      .send({ username: sender, password: senderPassword })
       .expect(201);
 
     const senderToken = loginSenderRes.body.token as string;
@@ -508,7 +523,7 @@ describe('Simple Crypto API (e2e)', () => {
 
     const loginReceiverRes = await request(server)
       .post('/login')
-      .send({ username: receiver })
+      .send({ username: receiver, password: receiverPassword })
       .expect(201);
 
     const receiverToken = loginReceiverRes.body.token as string;
@@ -532,15 +547,16 @@ describe('Simple Crypto API (e2e)', () => {
     const server = app.getHttpServer();
 
     const sender = 'sender_notfound_target_e2e';
+    const password = 'sender_notfound_target_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username: sender })
+      .send({ username: sender, password })
       .expect(201);
 
     const loginSenderRes = await request(server)
       .post('/login')
-      .send({ username: sender })
+      .send({ username: sender, password })
       .expect(201);
 
     const senderToken = loginSenderRes.body.token as string;
@@ -569,22 +585,23 @@ describe('Simple Crypto API (e2e)', () => {
     const server = app.getHttpServer();
 
     const username = 'rate_limit_login_user_e2e';
+    const password = 'rate_limit_login_password_e2e';
 
     await request(server)
       .post('/user')
-      .send({ username })
+      .send({ username, password })
       .expect(201);
 
     for (let i = 0; i < 50; i++) {
       await request(server)
         .post('/login')
-        .send({ username })
+        .send({ username, password })
         .expect(201);
     }
 
     await request(server)
       .post('/login')
-      .send({ username })
+      .send({ username, password })
       .expect(429);
-  });
+  }, 20000);
 });

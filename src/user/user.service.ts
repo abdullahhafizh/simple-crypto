@@ -2,6 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { ulid } from 'ulid';
 import { AuthService } from '../auth/auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { hashPassword } from '../auth/password.util';
 
 @Injectable()
 export class UserService {
@@ -10,7 +11,7 @@ export class UserService {
     private readonly authService: AuthService,
   ) {}
 
-  async register(username: string): Promise<{ token: string }> {
+  async register(username: string, password: string): Promise<{ token: string }> {
     const existing = await this.prisma.user.findUnique({
       where: { username },
     });
@@ -21,8 +22,10 @@ export class UserService {
 
     const userId = ulid();
 
+    const hashedPassword = await hashPassword(password);
+
     const user = await this.prisma.user.create({
-      data: { id: userId, username },
+      data: { id: userId, username, password: hashedPassword },
     });
 
     const token = this.authService.signUser({

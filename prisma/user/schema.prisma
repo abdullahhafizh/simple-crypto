@@ -1,6 +1,7 @@
 model User {
   id        String   @id @db.VarChar(26)
   username  String   @unique
+  password  String?  @db.VarChar(255)
   createdAt DateTime @default(now()) @db.Timestamp(3)
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
 

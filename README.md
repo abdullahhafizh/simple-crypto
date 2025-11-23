@@ -2,7 +2,7 @@
 
 NestJS + PostgreSQL service that implements a minimal crypto-wallet style ledger:
 
-- **User registration & login** with stateless JWT auth.
+- **User registration & login** with stateless JWT auth. Registration and login both require a `username` and `password`; passwords are hashed with Argon2id and stored as a salted, opaque hex string.
 - **Encrypted JWT payload**: user data is stored in an encrypted claim (`enc`) using AES-256-GCM with a key derived from `JWT_SECRET`.
 - **Ledger-based balance**: there is no mutable balance column; balances are derived from the `Transaction` table (CREDIT − DEBIT).
 - **Topup & transfer** with row-level locking (`SELECT ... FOR UPDATE`) to avoid race conditions on balance updates.
@@ -14,6 +14,7 @@ Main stack:
 
 - NestJS 11.1.9
 - Prisma ORM 7 + PostgreSQL 18.1 (adapter `@prisma/adapter-pg`)
+- Argon2id password hashing (`argon2` package, raw hash bytes stored as a single hex string together with the salt)
 - ULID as primary key (`String @id @db.VarChar(26)`)
 - BigInt for monetary values (`BigInt @db.BigInt`)
 
@@ -133,8 +134,8 @@ E2E scenarios cover, among others:
 
 High-level endpoints (all at the root, no version prefix):
 
-- `POST /user` – register a new user and return a JWT.
-- `POST /login` – login by username and return a JWT.
+- `POST /user` – register a new user with JSON `{ "username": string, "password": string }` and return a JWT.
+- `POST /login` – login with JSON `{ "username": string, "password": string }` and return a JWT.
 - `POST /topup` – **requires JWT**, add balance via a CREDIT transaction.
 - `GET /balance` – **requires JWT**, read logical balance from the ledger (CREDIT − DEBIT).
 - `POST /transfer` – **requires JWT**, transfer balance between users with row-level locking and DEBIT/CREDIT ledger entries.
